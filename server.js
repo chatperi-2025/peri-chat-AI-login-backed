@@ -2,13 +2,11 @@ const express = require('express');
 const app = express();
 const mysql = require('mysql2');
 const cors = require('cors');
-const path = require('path');
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://peri-chat-ai-login-60040263906.development.catalystserverless.in/app/index.html'  // 🔥 put your frontend live link here
+}));
 app.use(express.json());
-
-// Serve static files from 'frontend' folder
-app.use(express.static(path.join(__dirname, 'frontend')));
 
 // Database connection
 const db = mysql.createConnection({
@@ -18,12 +16,21 @@ const db = mysql.createConnection({
   database: 'bugmcgo92jrbk9dpfewg'
 });
 
+// Test database connection
+db.connect((err) => {
+  if (err) {
+    console.error('Database connection error:', err);
+  } else {
+    console.log('Connected to MySQL database.');
+  }
+});
+
 // Login API
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
-  const sql = 'SELECT * FROM login WHERE email = ? AND password = ?';
-  db.query(sql, [email, password], (err, result) => {
+  const sql = 'SELECT * FROM login WHERE email = ?';
+  db.query(sql, [email], (err, result) => {
     if (err) {
       console.error('Login error:', err);
       return res.status(500).json({ success: false, message: 'Server error' });
@@ -31,18 +38,22 @@ app.post('/login', (req, res) => {
 
     if (result.length > 0) {
       const user = result[0];
-      if (user.is_password_changed === 0) {
-        res.json({ success: true, changePassword: true });
+      if (user.password === password) {
+        if (user.is_password_changed === 0) {
+          res.json({ success: true, changePassword: true });
+        } else {
+          res.json({ success: true, changePassword: false });
+        }
       } else {
-        res.json({ success: true, changePassword: false });
+        res.json({ success: false, message: 'Incorrect password' });
       }
     } else {
-      res.json({ success: false, message: 'Invalid credentials' });
+      res.json({ success: false, message: 'User not found' });
     }
   });
 });
 
-// Change password API
+// Change Password API
 app.post('/change-password', (req, res) => {
   const { email, newPassword } = req.body;
 
@@ -53,19 +64,23 @@ app.post('/change-password', (req, res) => {
       return res.status(500).json({ success: false, message: 'Server error' });
     }
 
-    res.json({ success: true });
+    if (result.affectedRows > 0) {
+      res.json({ success: true, message: 'Password updated successfully.' });
+    } else {
+      res.json({ success: false, message: 'Email not found.' });
+    }
   });
 });
 
-// Get all users (for testing if needed)
+// Get All Users API
 app.get('/all-users', (req, res) => {
-  db.query('SELECT * FROM login', (err, result) => {
+  const sql = 'SELECT email FROM login';
+  db.query(sql, (err, result) => {
     if (err) {
       console.error('Error fetching users:', err);
-      res.status(500).json({ success: false });
-    } else {
-      res.json(result);
+      return res.status(500).json({ success: false, message: 'Failed to fetch users.' });
     }
+    res.json(result);
   });
 });
 
