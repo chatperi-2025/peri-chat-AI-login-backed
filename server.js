@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 const cors = require('cors');
 
 app.use(cors({
-  origin: 'https://dummy-60040263906.development.catalystserverless.in/app/index.html' // ✅ Updated: only domain, no "/app/index.html"
+  origin: 'https://dummy-60040263906.development.catalystserverless.in' // ✅ Updated: only domain, no "/app/index.html"
 }));
 app.use(express.json());
 
