@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 const cors = require('cors');
 
 app.use(cors({
-  origin: 'https://peri-chat-ai-login-60040263906.development.catalystserverless.in/app/index.html'  // 🔥 put your frontend live link here
+  origin: 'https://peri-chat-ai-login-60040263906.development.catalystserverless.in' // ✅ Updated: only domain, no "/app/index.html"
 }));
 app.use(express.json());
 
